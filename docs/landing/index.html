@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pengos — Traducción de voz en tiempo real para gamers latinos</title>
+<meta name="description" content="Entendé a tus compañeros gringos en Valorant y Apex. Pengos traduce la voz en tiempo real EN↔ES, encima del juego.">
+<!-- Open Graph: para que se vea bien cuando compartís el link en Discord/WhatsApp/TikTok -->
+<meta property="og:title" content="Pengos — Traducción de voz en tiempo real para gaming">
+<meta property="og:description" content="Escuchá a tu equipo gringo en español. Hablá vos en inglés. Valorant, Apex y más.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#2a3140;
+    --text:#e6edf3; --dim:#8b949e; --teal:#00d4aa; --amber:#ffdd44; --blue:#58a6ff;
+    --font:'Segoe UI',Inter,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.55;
+       background-image:radial-gradient(circle at 20% 0%,rgba(0,212,170,.08),transparent 40%),
+                        radial-gradient(circle at 90% 10%,rgba(88,166,255,.07),transparent 45%);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+  /* NAV */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{font-weight:800;font-size:22px;letter-spacing:.5px}
+  .logo span{color:var(--teal)}
+  .nav-link{color:var(--dim);text-decoration:none;font-size:14px;padding:8px 14px;
+            border:1px solid var(--border);border-radius:8px;transition:.15s}
+  .nav-link:hover{color:var(--text);border-color:var(--teal)}
+  /* HERO */
+  .hero{text-align:center;padding:48px 0 36px}
+  .badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--teal);
+         background:rgba(0,212,170,.12);border:1px solid rgba(0,212,170,.3);
+         padding:6px 14px;border-radius:20px;margin-bottom:22px}
+  h1{font-size:clamp(30px,6vw,48px);line-height:1.1;font-weight:800;margin-bottom:18px}
+  h1 .hl{color:var(--teal)}
+  .sub{font-size:clamp(16px,2.4vw,19px);color:var(--dim);max-width:620px;margin:0 auto 30px}
+  /* FORM */
+  form.cta{display:flex;gap:10px;max-width:440px;margin:0 auto;flex-wrap:wrap}
+  form.cta input[type=email]{flex:1;min-width:200px;padding:14px 16px;font-size:15px;border-radius:10px;
+       border:1px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--font)}
+  form.cta input[type=email]:focus{outline:none;border-color:var(--teal)}
+  .btn{padding:14px 22px;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;
+       background:var(--teal);color:#04140f;transition:.15s;font-family:var(--font)}
+  .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .hp{position:absolute;left:-9999px}
+  .form-note{font-size:13px;color:var(--dim);margin-top:12px}
+  .form-ok{display:none;color:var(--teal);font-weight:700;font-size:16px;margin-top:8px}
+  /* DEMO */
+  .demo{margin:42px auto;max-width:760px;aspect-ratio:16/9;border-radius:14px;
+        border:1px solid var(--border);background:var(--panel);
+        display:flex;align-items:center;justify-content:center;text-align:center;color:var(--dim);
+        background-image:linear-gradient(135deg,rgba(0,212,170,.05),rgba(88,166,255,.05))}
+  .demo b{color:var(--text)}
+  /* MOCK OVERLAY (muestra de cómo se ve) */
+  .mock{font-family:var(--font);text-align:left;padding:22px;max-width:420px}
+  .mock .en{color:#6a737d;font-size:13px;font-style:italic}
+  .mock .es{color:var(--teal);font-size:19px;font-weight:700;margin-bottom:14px}
+  .mock .es.amber{color:var(--amber)}
+  /* FEATURES */
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:40px 0}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px}
+  .card .ic{font-size:24px;margin-bottom:10px}
+  .card h3{font-size:16px;margin-bottom:6px}
+  .card p{font-size:14px;color:var(--dim)}
+  /* PRICE */
+  .price{text-align:center;background:var(--panel2);border:1px solid var(--border);
+         border-radius:16px;padding:36px 24px;margin:36px 0}
+  .price .tag{font-size:40px;font-weight:800;color:var(--teal)}
+  .price .tag small{font-size:16px;color:var(--dim);font-weight:500}
+  .price p{color:var(--dim);font-size:14px;margin:8px 0 22px}
+  /* FOOTER */
+  footer{text-align:center;color:var(--dim);font-size:13px;padding:40px 0 30px;border-top:1px solid var(--border);margin-top:30px}
+  footer a{color:var(--blue);text-decoration:none}
+  .pill{display:inline-block;font-size:12px;color:var(--dim);border:1px solid var(--border);
+        border-radius:20px;padding:4px 12px;margin:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav>
+    <div class="logo">Pen<span>gos</span></div>
+    <!-- TODO: reemplazá con tu invitación real de Discord -->
+    <a class="nav-link" href="#" id="discord-link">Unirme al Discord</a>
+  </nav>
+
+  <header class="hero">
+    <div class="badge">● BETA — PRÓXIMAMENTE</div>
+    <h1>Entendé a tu equipo <span class="hl">gringo</span>.<br>Sin perder la pelea.</h1>
+    <p class="sub">
+      Pengos escucha a tus compañeros en inglés y te lo muestra en español <b>sobre el juego</b>,
+      en tiempo real. Y cuando hablás vos en español, lo pasa a inglés. Valorant, Apex y más.
+    </p>
+
+    <!-- FORM: reemplazá REEMPLAZA_TU_ID por tu endpoint de Formspree (formspree.io, plan gratis) -->
+    <form class="cta" id="signup" action="https://formspree.io/f/REEMPLAZA_TU_ID" method="POST">
+      <input type="email" name="email" required placeholder="tu@correo.com" autocomplete="email">
+      <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off"><!-- honeypot anti-spam -->
+      <input type="hidden" name="_subject" value="Nuevo registro Pengos">
+      <input type="hidden" name="origen" value="landing">
+      <button class="btn" type="submit">Avisame cuando salga</button>
+    </form>
+    <p class="form-note">Sin spam. Solo un correo el día del lanzamiento.</p>
+    <p class="form-ok" id="form-ok">¡Listo! Te aviso apenas salga. 🎮</p>
+  </header>
+
+  <!-- DEMO: cambiá este bloque por tu <video> o un <img> con un GIF de gameplay real -->
+  <div class="demo">
+    <div class="mock">
+      <div class="en">"he's one shot, push now"</div>
+      <div class="es">está a un tiro, entren ya</div>
+      <div class="en">"nice, regular play though"</div>
+      <div class="es amber">bien, aunque jugada mediocre</div>
+      <div style="color:var(--dim);font-size:12px;margin-top:14px">↑ así se ve el overlay (poné acá tu video real)</div>
+    </div>
+  </div>
+
+  <section class="features">
+    <div class="card">
+      <div class="ic">⚡</div><h3>En tiempo real</h3>
+      <p>Traduce la voz de tu equipo mientras hablan, sin que tengas que soltar el mouse.</p>
+    </div>
+    <div class="card">
+      <div class="ic">🇨🇴</div><h3>Jerga real, no robótica</h3>
+      <p>Entiende callouts de Valorant/Apex y slang colombiano: "parce", "una nota", "regular" = mediocre.</p>
+    </div>
+    <div class="card">
+      <div class="ic">🎙️</div><h3>Tu voz al inglés</h3>
+      <p>Hablás en español y te lo copia en inglés al portapapeles para pegar en el chat del equipo.</p>
+    </div>
+    <div class="card">
+      <div class="ic">🪶</div><h3>Liviano, para Windows</h3>
+      <p>Corre en segundo plano con baja prioridad. Funciona mejor con el juego en ventana sin bordes.</p>
+    </div>
+  </section>
+
+  <section class="price">
+    <div class="tag">$9.99 <small>pago único</small></div>
+    <p>Sin suscripción. Trae tu propia API key gratis de Groq (te explico cómo en 2 min).</p>
+    <a class="btn" href="#signup">Quiero que me avisen</a>
+  </section>
+
+  <footer>
+    <div>
+      <span class="pill">🎮 Valorant</span>
+      <span class="pill">🔫 Apex</span>
+      <span class="pill">🪟 Windows</span>
+      <span class="pill">🇨🇴 Hecho por un dev colombiano</span>
+    </div>
+    <p style="margin-top:16px">Pengos · proyecto independiente · <a href="#" id="gh-link">GitHub</a></p>
+  </footer>
+
+</div>
+
+<script>
+  // Envío del formulario sin recargar la página (mejor UX). Si Formspree falla, hace submit normal.
+  var f = document.getElementById('signup');
+  f.addEventListener('submit', function(e){
+    if (f.action.indexOf('REEMPLAZA_TU_ID') !== -1) return; // todavía sin configurar → deja el submit normal
+    e.preventDefault();
+    fetch(f.action, { method:'POST', body:new FormData(f), headers:{'Accept':'application/json'} })
+      .then(function(r){
+        if(r.ok){ f.style.display='none'; document.getElementById('form-ok').style.display='block'; }
+        else { f.submit(); }
+      })
+      .catch(function(){ f.submit(); });
+  });
+</script>
+</body>
+</html>

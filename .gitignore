@@ -1,0 +1,30 @@
+# Seguridad
+.env
+config.json
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Historial de sesiones
+historial/
+
+# Logs
+pengos.log
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS
+Thumbs.db
+.DS_Store
