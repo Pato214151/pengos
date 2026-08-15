@@ -473,15 +473,20 @@ class SettingsPanel(QDialog):
         desc.setStyleSheet("color: #e6edf3; font-size: 14px;")
         desc.setAlignment(Qt.AlignCenter)
         
-        author = QLabel("Hecho con ❤ por Julian")
+        author = QLabel("Hecho con ❤ por Ducklab")
         author.setStyleSheet("color: #8b949e; font-size: 12px; margin-top: 20px;")
         author.setAlignment(Qt.AlignCenter)
-        
+
+        brand = QLabel("🐥 Ducklab")
+        brand.setStyleSheet("color: #db1f2e; font-size: 12px; font-weight: bold; margin-top: 2px;")
+        brand.setAlignment(Qt.AlignCenter)
+
         layout.addWidget(title)
         layout.addWidget(ver)
         layout.addSpacing(20)
         layout.addWidget(desc)
         layout.addWidget(author)
+        layout.addWidget(brand)
         
         return w
 
