@@ -1,3 +1,9 @@
+"""
+Ventana de inicio (sin bordes) que se ve al abrir Pengos.
+Muestra si hay API key y si se detecta el dispositivo de audio, y tiene los
+botones "Iniciar" (emite sig_start) y "Ajustes" (emite sig_settings).
+"""
+
 import os
 from pathlib import Path
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QPoint
@@ -178,6 +184,7 @@ class Launcher(QWidget):
         QTimer.singleShot(500, self._check_status)
 
     def _check_status(self):
+        """Revisa la API key y el dispositivo de audio y pinta los indicadores."""
         # Check API
         try:
             api_key = os.environ.get('GROQ_API_KEY') or config.get('api_key', '')
@@ -214,11 +221,13 @@ class Launcher(QWidget):
             self._audio_label.setStyleSheet('color: #ff6b6b; font-size: 11px;')
 
     def mousePressEvent(self, event):
+        """Guarda el punto de agarre para poder arrastrar la ventana sin bordes."""
         if event.button() == Qt.LeftButton and event.y() < 40:
             self._drag_pos = event.globalPos() - self.frameGeometry().topLeft()
             event.accept()
 
     def mouseMoveEvent(self, event):
+        """Mueve la ventana mientras se arrastra."""
         if event.buttons() == Qt.LeftButton and hasattr(self, '_drag_pos'):
             self.move(event.globalPos() - self._drag_pos)
             event.accept()

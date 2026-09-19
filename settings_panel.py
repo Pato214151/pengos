@@ -1,3 +1,9 @@
+"""
+Panel de ajustes (diálogo con pestañas): General, Audio, Teclas, Overlay,
+Frases rápidas y Acerca de. Lee la config al abrir (_load_config) y al guardar
+llama a config.save_config(), que escribe config.json y .env.
+"""
+
 import json
 import os
 from PyQt5.QtCore import Qt, QEvent
@@ -10,6 +16,7 @@ from PyQt5.QtWidgets import (
 from config import config, log, save_config
 
 class HotkeyButton(QPushButton):
+    """Botón que, al pulsarlo, captura la siguiente tecla y la muestra como atajo."""
     def __init__(self, key_name: str, parent=None):
         super().__init__(key_name, parent)
         self.setCheckable(True)
@@ -47,6 +54,7 @@ class HotkeyButton(QPushButton):
 
 
 class SettingsPanel(QDialog):
+    """Diálogo de configuración sin bordes, con menú lateral de pestañas."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFixedSize(750, 520)
@@ -280,6 +288,7 @@ class SettingsPanel(QDialog):
         return w
 
     def _list_audio_devices(self):
+        """Lista los dispositivos de entrada para elegir en la pestaña Audio."""
         devices = []
         try:
             import pyaudio
@@ -496,6 +505,7 @@ class SettingsPanel(QDialog):
             btn.setChecked(i == idx)
 
     def _load_config(self):
+        """Llena todos los controles con los valores actuales de config.json."""
         self.inp_api.setText(os.environ.get('GROQ_API_KEY') or config.get('api_key', ''))
         self.cmb_modo_escucha.setCurrentText(config.get('modo_escucha', 'siempre'))
         self.cmb_idioma.setCurrentText(config.get('idioma_entrada', 'auto'))
@@ -540,6 +550,7 @@ class SettingsPanel(QDialog):
             self.lst_frases.addItem(item)
 
     def _save_config(self):
+        """Lee los controles, arma el dict de config y lo guarda."""
         new_api = self.inp_api.text().strip()
         
         frases = []

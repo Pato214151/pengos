@@ -1,3 +1,9 @@
+"""
+Icono en la bandeja del sistema (junto al reloj de Windows).
+Menú con: activar escucha/micrófono, abrir ajustes, mostrar overlay y salir.
+Emite señales que main.py conecta con el AudioProcessor y el overlay.
+"""
+
 import sys
 from pathlib import Path
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
@@ -95,6 +101,7 @@ class SystemTray(QObject):
         self.tray_icon.show()
 
     def set_status(self, status: str):
+        """Cambia el icono/tooltip según el estado ('active', 'waiting', 'error')."""
         if status == 'active':
             self.tray_icon.setToolTip("Pengos — Activo")
         elif status == 'waiting':

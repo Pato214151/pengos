@@ -1,3 +1,13 @@
+"""
+Overlay: ventana flotante, siempre encima y semitransparente, donde se ven
+los subtítulos (inglés en gris arriba, español en verde abajo).
+
+Recibe los resultados de audio.py por señales Qt (show_final, show_mic_result...).
+Los métodos públicos solo emiten señales internas para que el dibujado ocurra
+siempre en el hilo de la interfaz (_on_*). También muestra las frases rápidas
+(F2) y se puede fijar para que no se oculte (F3).
+"""
+
 import pyperclip
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QColor
@@ -161,9 +171,11 @@ class Overlay(QWidget):
     # ── API pública ──
 
     def show_partial(self, english: str):
+        """Texto provisional mientras se procesa."""
         self.sig_partial.emit(english)
 
     def show_final(self, original: str, translated: str, direction: str = "en2es"):
+        """Par final (original, traducción) del audio del sistema."""
         self.sig_final.emit(original, translated, direction)
 
     def show_ptt(self, active: bool):
@@ -176,6 +188,7 @@ class Overlay(QWidget):
         self.sig_proc.emit(active)
 
     def show_mic_result(self, es: str, en: str):
+        """Par final (lo que dijiste, traducción) del micrófono."""
         self.sig_mic_show.emit(es, en)
 
     def toggle_pin(self):
@@ -188,6 +201,7 @@ class Overlay(QWidget):
         self.sig_cmd_frase.emit(n)
 
     def set_status(self, color: str):
+        """Cambia el color del indicador de estado (verde/rojo/...)."""
         self.status_dot.setStyleSheet(f"background: {color}; border-radius: 5px;")
 
     # ── Slots ──
@@ -300,6 +314,7 @@ class Overlay(QWidget):
 
     def _add_pair(self, top: QLabel, bottom: QLabel, pending: bool = False,
                   bottom_style: str = None, accent: str = None):
+        """Agrega un bloque original+traducción al overlay con su estilo y acento."""
         container = QWidget()
         vbox = QVBoxLayout(container)
         vbox.setContentsMargins(8, 4, 8, 4)
@@ -340,6 +355,7 @@ class Overlay(QWidget):
             bottom.setStyleSheet(self._STYLE_ES_DIM)
 
     def _trim_lines(self):
+        """Deja solo las últimas N traducciones visibles."""
         while len(self._line_pairs) > self.MAX_LINES:
             container, _t, _b = self._line_pairs.pop(0)
             if _b in self._pending_es_queue:
@@ -348,11 +364,13 @@ class Overlay(QWidget):
             container.deleteLater()
 
     def _show_and_reset_timer(self):
+        """Muestra el overlay y reinicia el temporizador de auto-ocultado."""
         self.show()
         if not self.pinned:
             self.hide_timer.start(config["overlay"].get("tiempo_visible", 6000))
 
     def _maybe_hide(self):
+        """Oculta el overlay por inactividad, salvo que esté fijado."""
         if not self.pinned and not self.underMouse() and not self._pending_es_queue:
             self.hide()
 

@@ -1,3 +1,24 @@
+"""
+Captura de audio y pipeline de traducción: el corazón de Pengos.
+
+Dos streams en paralelo, cada uno en su hilo:
+  - SISTEMA (F4, run): lo que suena en el PC (VB-CABLE / Stereo Mix) → EN→ES
+  - MICRÓFONO (F5, run_mic): tu voz → ES→EN y se copia al portapapeles
+
+Recorrido de un segmento de voz:
+  1. Se leen frames de 30 ms y el VAD (webrtcvad) decide si hay voz.
+  2. Cuando hay una pausa (o el buffer se llena) se corta el segmento.
+  3. _voz_util() descarta segmentos muy cortos o silenciosos (ahorra API).
+  4. El segmento queda como "pendiente" (solo el más reciente) y un worker
+     lo toma: _process_sys / _process_mic.
+  5. Whisper transcribe → filtros → glosario/aprendido (si hay, sin API) →
+     Llama traduce → señal Qt al overlay + historial.
+
+Control de la cuota de Groq: throttle adaptativo compartido (se ensancha con
+cada 429), reintentos para errores transitorios y "rendición" hasta la
+medianoche UTC si se agota el límite diario.
+"""
+
 import audioop
 import io
 import re
@@ -21,6 +42,9 @@ from historial import registrar
 
 
 class AudioProcessor(QObject):
+    """Captura los dos streams de audio y emite señales Qt con los resultados.
+    Se crea en main.py; run() y run_mic() corren en hilos aparte.
+    """
     sig_partial    = pyqtSignal(str)
     sig_final      = pyqtSignal(str, str, str)   # (original, translated, direction: "en2es"|"es2en")
     sig_status     = pyqtSignal(str)
@@ -125,6 +149,9 @@ class AudioProcessor(QObject):
     ]
 
     def _open_stream_sys(self):
+        """Abre el stream de audio del sistema según config["audio_mode"]
+        (VB-CABLE por nombre o Stereo Mix).
+        """
         mode = config.get("audio_mode", "vbcable")
         if mode == "vbcable":
             return self._open_by_name(config["audio_device_name"])
@@ -147,6 +174,7 @@ class AudioProcessor(QObject):
             sys.exit(1)
 
     def _find_device_index(self, name: str) -> int | None:
+        """Busca un dispositivo de entrada cuyo nombre contenga el texto dado."""
         return next(
             (i for i in range(self.p.get_device_count())
              if name in self.p.get_device_info_by_index(i)["name"]
@@ -155,6 +183,7 @@ class AudioProcessor(QObject):
         )
 
     def _open_by_name(self, name: str):
+        """Abre un dispositivo de entrada por nombre (ej: "CABLE Output")."""
         index = self._find_device_index(name)
         if index is None:
             log.error(f"Dispositivo '{name}' no encontrado.")
@@ -168,6 +197,7 @@ class AudioProcessor(QObject):
         )
 
     def _open_stereo_mix(self):
+        """Intenta abrir un dispositivo tipo "Stereo Mix" / loopback."""
         for i in range(self.p.get_device_count()):
             info = self.p.get_device_info_by_index(i)
             if info["maxInputChannels"] > 0:
@@ -185,6 +215,7 @@ class AudioProcessor(QObject):
         )
 
     def _listar_dispositivos(self):
+        """Loguea los dispositivos de entrada disponibles (ayuda a configurar)."""
         log.info("Dispositivos de entrada disponibles:")
         for i in range(self.p.get_device_count()):
             info = self.p.get_device_info_by_index(i)
@@ -192,6 +223,7 @@ class AudioProcessor(QObject):
                 log.info(f"  [{i}] {info['name']}")
 
     def _open_mic(self):
+        """Abre el micrófono configurado; devuelve None si no hay (F5 queda apagado)."""
         mic_name = config.get("microphone_device_name", "")
         if mic_name:
             index = next(
@@ -222,16 +254,21 @@ class AudioProcessor(QObject):
             return None
 
     def set_ptt(self, active: bool):
+        """Activa/desactiva la escucha del audio del sistema (F4)."""
         self._ptt_active = active
         self.sig_ptt.emit(active)
 
     def set_mic(self, active: bool):
+        """Activa/desactiva la captura del micrófono (F5)."""
         if self.stream_mic is None:
             return
         self._mic_active = active
         self.sig_mic.emit(active)
 
     def run(self):
+        """Loop del stream de SISTEMA: lee frames, corta segmentos de voz con el VAD
+        y los despacha. Al terminar cierra los streams y PyAudio de forma segura.
+        """
         frame_ms        = int(self.FRAME_BYTES / self.SAMPLE_RATE * 1000)  # 30 ms
         silencio_ms     = config.get("vad_silencio_ms", 600)
         silence_trigger = max(1, silencio_ms // frame_ms)
@@ -352,6 +389,9 @@ class AudioProcessor(QObject):
         log.info("AudioProcessor cerrado.")
 
     def run_mic(self):
+        """Loop del MICRÓFONO: igual que run() pero con VAD un poco menos sensible
+        y menos pre-roll.
+        """
         if self.stream_mic is None:
             self._mic_stopped.set()
             return
@@ -475,6 +515,7 @@ class AudioProcessor(QObject):
         return True
 
     def _start_process_sys(self, pcm: bytes):
+        """Deja el segmento como pendiente del stream de sistema (descarta el anterior)."""
         # No procesa acá: deja el segmento como "pendiente más reciente". El worker
         # lo recoge. Si ya había uno sin empezar, se descarta (siempre el más nuevo)
         # → nunca se acumula una cola que congele la traducción.
@@ -489,6 +530,7 @@ class AudioProcessor(QObject):
         self._pending_sys_event.set()
 
     def _start_process_mic(self, pcm: bytes):
+        """Deja el segmento como pendiente del micrófono (descarta el anterior)."""
         if not self._voz_util(pcm):
             return
         captured_at = time.time()
@@ -573,6 +615,7 @@ class AudioProcessor(QObject):
                         self.sig_proc.emit(False)
 
     def _pcm_to_wav(self, pcm: bytes) -> bytes:
+        """Envuelve audio PCM crudo en un WAV mono 16 kHz para mandarlo a Whisper."""
         buf = io.BytesIO()
         with wave.open(buf, "wb") as wf:
             wf.setnchannels(1)
@@ -629,6 +672,7 @@ class AudioProcessor(QObject):
             return False
 
     def _current_gap(self) -> float:
+        """Segundos mínimos actuales entre llamadas a la API (throttle adaptativo)."""
         with self._gap_lock:
             return self._gap
 
@@ -645,6 +689,7 @@ class AudioProcessor(QObject):
                 self._gap = max(self._GAP_MIN, self._gap * self._GAP_DECAY)
 
     def _throttle_sys(self):
+        """Espera lo necesario para respetar el gap antes de llamar a la API (sistema)."""
         gap = self._current_gap()
         with self._sys_lock:
             now  = time.time()
@@ -654,6 +699,7 @@ class AudioProcessor(QObject):
             self._sys_ts = time.time()
 
     def _throttle_mic(self):
+        """Espera lo necesario para respetar el gap antes de llamar a la API (mic)."""
         gap = self._current_gap()
         with self._mic_lock:
             now  = time.time()
@@ -700,6 +746,9 @@ class AudioProcessor(QObject):
         return "stop"
 
     def _process_sys(self, wav_bytes: bytes, captured_at: float = None):
+        """Transcribe y traduce un segmento del SISTEMA (EN→ES normalmente) y lo
+        envía al overlay. Reintenta errores transitorios.
+        """
         if self._rpd_rendido():
             return   # cuota diaria agotada — no pedir hasta el reset
         MAX_RETRIES = 3
@@ -800,6 +849,9 @@ class AudioProcessor(QObject):
                 return
 
     def _process_mic(self, wav_bytes: bytes, captured_at: float = None):
+        """Transcribe tu voz en español, la traduce al inglés, la copia al
+        portapapeles y la muestra en el overlay.
+        """
         if self._rpd_rendido():
             return   # cuota diaria agotada — no pedir hasta el reset
         MAX_RETRIES = 3
@@ -859,4 +911,5 @@ class AudioProcessor(QObject):
                 return
 
     def stop(self):
+        """Pide a los loops y workers que terminen."""
         self.running = False

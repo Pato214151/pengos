@@ -1,3 +1,12 @@
+"""
+Configuración global, cargada una sola vez al importar:
+  - config:  dict leído de config.json (hotkeys, audio, overlay...)
+  - log:     logger que escribe en pengos.log y en consola
+  - client:  cliente de Groq con la API key de .env (o de config.json)
+  - save_config(): guarda cambios desde el panel de ajustes
+Si falta config.json o la API key, el programa sale con un mensaje claro.
+"""
+
 import json
 import logging
 import os

@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# Punto de entrada. Arranca en este orden:
+#   1. main(): baja la prioridad del proceso y muestra el Launcher.
+#   2. Al pulsar "Iniciar": PengosApp.start_pengos() carga glosario/aprendido,
+#      crea el Overlay, el AudioProcessor y el icono de bandeja, y los conecta
+#      con señales Qt (QueuedConnection porque el audio corre en otros hilos).
+#   3. _setup_hotkeys() escucha el teclado global (F4 escuchar, F5 hablar,
+#      F2 frases, F3 fijar overlay, Ctrl+Shift+Q salir).
 """Pengos MVP — Overlay de traducción gamer en tiempo real."""
 
 import signal
@@ -20,6 +27,7 @@ from settings_panel import SettingsPanel
 from tray import SystemTray
 
 def _parse_key(s: str, key_map: dict):
+    """Convierte el texto de config ("f4", "q") en una tecla de pynput."""
     s = s.strip().lower()
     if s in key_map:
         return key_map[s]
@@ -28,6 +36,9 @@ def _parse_key(s: str, key_map: dict):
     return None
 
 class PengosApp:
+    """Orquesta la app: dueño del overlay, el procesador de audio, la bandeja
+    y el listener de teclado.
+    """
     def __init__(self, app):
         self.app = app
         self.processor = None
@@ -36,6 +47,7 @@ class PengosApp:
         self.listener = None
         
     def start_pengos(self, launcher):
+        """Crea y conecta todas las piezas y lanza los hilos de captura."""
         launcher.hide()
         
         cargar_glosario()
@@ -102,6 +114,9 @@ class PengosApp:
         self.tray.show()
 
     def _setup_hotkeys(self):
+        """Registra las teclas globales. En modo "mantener" F4 escucha mientras
+        la tienes presionada; en modo "siempre" F4 alterna encendido/apagado.
+        """
         _KEY_MAP = {
             **{f"f{i}": getattr(kb.Key, f"f{i}") for i in range(1, 13)},
             "esc": kb.Key.esc, "tab": kb.Key.tab, "space": kb.Key.space,
@@ -182,6 +197,7 @@ class PengosApp:
         SettingsPanel().exec_()
 
     def quit_app(self):
+        """Detiene el audio y el teclado y cierra Qt."""
         if self.processor:
             self.processor.stop()
         if self.listener:
@@ -216,6 +232,7 @@ def _bajar_prioridad_proceso():
 
 
 def main():
+    """Arranca Qt y muestra el Launcher (la app real inicia al pulsar Iniciar)."""
     _bajar_prioridad_proceso()
     app = QApplication(sys.argv)
 

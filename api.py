@@ -1,3 +1,14 @@
+"""
+Llamadas a la API de Groq: transcripción (Whisper) y traducción (Llama).
+
+- transcribe_audio(): audio WAV → (texto, 'en'|'es'). Detecta el idioma por el
+  AUDIO y descarta alucinaciones de Whisper en silencio.
+- translate_en_to_es() / translate_es_to_en(): texto → texto con un prompt
+  pensado para jerga gamer y español colombiano.
+
+Lo usa audio.py; el cliente de Groq se crea en config.py.
+"""
+
 import io
 
 from config import client, config, log
@@ -142,6 +153,7 @@ def transcribe_audio(audio_bytes: bytes, language: str | None = None) -> tuple[s
 
 
 def translate_en_to_es(english: str) -> str:
+    """Traduce inglés → español colombiano con Llama 3.1 8B (rápido y barato)."""
     resp = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
@@ -155,6 +167,7 @@ def translate_en_to_es(english: str) -> str:
 
 
 def translate_es_to_en(spanish: str) -> str:
+    """Traduce español (con jerga colombiana) → inglés con Llama 3.1 8B."""
     resp = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[

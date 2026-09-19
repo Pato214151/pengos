@@ -1,3 +1,11 @@
+"""
+Glosario curado a mano (glosario.json):
+  - correcciones: arregla palabras que Whisper transcribe mal
+  - traducciones_directas: frases con traducción fija, sin llamar a la API
+    (0 ms y gratis)
+Se carga al iniciar con cargar_glosario(); las claves se comparan normalizadas.
+"""
+
 import json
 import re
 
@@ -22,6 +30,7 @@ def _glosario_key(texto: str) -> str:
 
 
 def cargar_glosario():
+    """Lee glosario.json a memoria (ignora claves que empiezan con '_')."""
     global _glosario_correcciones, _glosario_traducciones_directas
     try:
         with open(BASE_DIR / "glosario.json", "r", encoding="utf-8") as f:
@@ -43,10 +52,12 @@ def cargar_glosario():
 
 
 def corregir_transcripcion(texto: str) -> str:
+    """Devuelve la corrección del glosario, o el texto tal cual si no hay."""
     key = _glosario_key(texto)
     return _glosario_correcciones.get(key, texto)
 
 
 def traduccion_directa(texto: str) -> str | None:
+    """Devuelve la traducción fija de la frase, o None si no está en el glosario."""
     key = _glosario_key(texto)
     return _glosario_traducciones_directas.get(key)

@@ -1,3 +1,11 @@
+"""
+Filtros de texto que se aplican a lo que devuelve Whisper:
+  - detectar_idioma(): decide si un texto es español o inglés (acentos +
+    palabras marcadoras), para cuando el audio no lo deja claro.
+  - es_transcripcion_valida(): descarta basura típica de Whisper ("thanks for
+    watching", subtítulos, alfabetos no latinos, eco del prompt, repeticiones).
+"""
+
 import re
 
 from glosario import corregir_transcripcion, traduccion_directa
@@ -112,6 +120,9 @@ def detectar_idioma(texto: str) -> str:
 
 
 def es_transcripcion_valida(texto: str) -> bool:
+    """True si el texto parece voz real y vale la pena traducirlo.
+    Los textos muy cortos solo pasan si están en el glosario.
+    """
     t = texto.strip()
     if len(t) < 4:
         if corregir_transcripcion(t) != t or traduccion_directa(t) is not None:

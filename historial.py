@@ -1,3 +1,9 @@
+"""
+Historial de traducciones en archivos JSONL dentro de historial/.
+Cada sesión crea hasta 2 archivos (en2es y es2en) con una línea por traducción.
+Se conservan solo las últimas MAX_SESIONES sesiones (podar_historial).
+"""
+
 import json
 import re
 import threading
