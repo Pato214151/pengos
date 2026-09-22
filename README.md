@@ -196,6 +196,11 @@ python tests/test_prompts.py         # Validación de prompts
 
 ---
 
+## Seguridad
+
+- La API key de Groq va en `.env`, que está en `.gitignore`; `.env.example` solo trae un valor de ejemplo.
+- El repositorio no contiene grabaciones de audio ni transcripciones.
+
 ## Stack
 
 | Componente | Tecnología |
