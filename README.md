@@ -212,3 +212,19 @@ python tests/test_prompts.py         # Validación de prompts
 | Traducción | Groq Llama 3.1-8b-instant |
 | Hotkeys | pynput |
 | Portapapeles | pyperclip |
+
+---
+
+## Lo que salió mal (y cómo lo arreglé)
+
+**Whisper inventaba frases.**
+Cuando había silencio o ruido, el modelo de transcripción escribía cosas como "thanks for watching" o "subtítulos por…", porque se entrenó con videos de YouTube. En pantalla aparecían traducciones de cosas que nadie dijo. Hice un filtro que descarta esas frases, los textos en alfabetos raros, las repeticiones y los ecos del propio prompt.
+
+**La API me cortaba por exceso de peticiones.**
+Groq limita cuántas peticiones puedes hacer por minuto y me respondía 429. Si seguía insistiendo, perdía la sesión. Implementé una espera que se adapta: cuando llega un 429, la espera se multiplica por 1,6 (hasta 8 segundos), y con cada respuesta buena se reduce poco a poco.
+
+**Términos de juego mal traducidos y lentos.**
+Whisper confundía nombres de armas y personajes, y pasar todo por el modelo de traducción agregaba demora. Armé un glosario de unos 500 términos que corrige los errores típicos y traduce directo, sin llamar a la IA, cuando hay coincidencia exacta.
+
+**Capturar el audio del juego.**
+Windows no deja grabar lo que suena en los parlantes como si fuera un micrófono. Lo resolví con un cable de audio virtual (VB‑CABLE) y un detector de voz para no enviar silencio a la API.
